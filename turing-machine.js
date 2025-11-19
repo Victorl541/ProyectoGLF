@@ -1,24 +1,41 @@
 class TuringMachine {
     constructor() {
-        this.tape = [];
+        this.tape = ['□', '□', '□', '□', '□', '□', '□'];
         this.position = 0;
         this.currentState = 'q0';
         this.isRunning = false;
-        this.speed = 1000;
+        this.speed = 800;
+        this.digitsRead = 0;
         
-        this.initializeElements();
-        this.bindEvents();
+        this.states = {
+            'q0': this.stateQ0.bind(this),
+            'q1': this.stateQ1.bind(this),
+            'q2': this.stateQ2.bind(this),
+            'q3': this.stateQ3.bind(this),
+            'q4': this.stateQ4.bind(this),
+            'q5': this.stateQ5.bind(this),
+            'q6': this.stateQ6.bind(this),
+            'q7': this.stateQ7.bind(this),
+            'check': this.stateCheck.bind(this)
+        };
+        
+        this.initialize();
     }
 
-    initializeElements() {
-        this.tapeElement = document.getElementById('tapeReel');
-        this.headElement = document.getElementById('tapeHead');
-        this.highlightElement = document.getElementById('activeCell');
-        this.stateElement = document.getElementById('currentState');
-        this.symbolElement = document.getElementById('currentSymbol');
-        this.positionElement = document.getElementById('currentPosition');
-        this.resultElement = document.getElementById('result');
-        this.consoleElement = document.getElementById('console');
+    initialize() {
+        this.elements = {
+            tape: document.getElementById('tape'),
+            head: document.getElementById('tapeHead'),
+            state: document.getElementById('currentState'),
+            symbol: document.getElementById('currentSymbol'),
+            position: document.getElementById('currentPosition'),
+            result: document.getElementById('result'),
+            console: document.getElementById('console'),
+            input: document.getElementById('inputString')
+        };
+
+        this.bindEvents();
+        this.addLog('Sistema listo. Ingrese un PIN de 4 o 6 dígitos.');
     }
 
     bindEvents() {
@@ -29,123 +46,293 @@ class TuringMachine {
     }
 
     loadTape() {
-        const input = document.getElementById('inputString').value;
-        this.tape = input.split('').map(char => char === ' ' ? '□' : char);
+        const input = this.elements.input.value.trim();
+        
+        if (!input) {
+            this.addLog('Error: Ingrese una cadena primero');
+            return;
+        }
+
+        if (input.length > 10) {
+            this.addLog('Error: La cadena no puede tener más de 10 caracteres');
+            return;
+        }
+
+        this.tape = [...input.split(''), '□'];
         this.position = 0;
         this.currentState = 'q0';
+        this.digitsRead = 0;
         
         this.renderTape();
         this.updateDisplay();
-        this.addConsoleMessage('Cadena cargada en la cinta: ' + input);
+        this.addLog(`Cadena cargada: "${input}"`);
+        this.addLog(`Longitud: ${input.length} caracteres`);
     }
 
     renderTape() {
-        this.tapeElement.innerHTML = '';
+        this.elements.tape.innerHTML = '';
         
         this.tape.forEach((symbol, index) => {
             const cell = document.createElement('div');
-            cell.className = `slot-cell ${index === this.position ? 'active' : ''}`;
-            cell.setAttribute('data-position', index);
-            
-            const content = document.createElement('div');
-            content.className = 'slot-content';
-            content.textContent = symbol;
-            
-            cell.appendChild(content);
-            this.tapeElement.appendChild(cell);
+            cell.className = `cell ${index === this.position ? 'active' : ''} ${symbol === '□' ? 'blank' : ''}`;
+            cell.textContent = symbol;
+            this.elements.tape.appendChild(cell);
         });
 
         this.updateHeadPosition();
     }
 
     updateHeadPosition() {
-        const cells = this.tapeElement.querySelectorAll('.slot-cell');
+        const cells = this.elements.tape.querySelectorAll('.cell');
+        
         if (cells[this.position]) {
             const cellRect = cells[this.position].getBoundingClientRect();
-            const tapeRect = this.tapeElement.getBoundingClientRect();
-            const relativeLeft = cellRect.left - tapeRect.left + cellRect.width / 2;
-            
-            this.headElement.style.left = `calc(50% + ${relativeLeft - tapeRect.width / 2}px)`;
-            this.highlightElement.style.left = `${cellRect.left - tapeRect.left}px`;
+            const tapeRect = this.elements.tape.getBoundingClientRect();
+            const left = cellRect.left - tapeRect.left + (cellRect.width / 2);
+            this.elements.head.style.left = `calc(${left}px - 1rem)`;
         }
     }
 
     step() {
         if (this.tape.length === 0) {
-            this.addConsoleMessage('Error: Primero carga una cadena en la cinta', 'error');
+            this.addLog('Error: Primero cargue una cadena');
+            return;
+        }
+
+        if (this.currentState === 'accept' || this.currentState === 'reject') {
+            this.addLog('La máquina ya terminó su ejecución');
+            return;
+        }
+
+        if (this.position >= this.tape.length) {
+            this.currentState = 'check';
+            this.addLog('Fin de cinta alcanzado - Verificando longitud');
+            this.checkLength();
             return;
         }
 
         const currentSymbol = this.tape[this.position];
-        
-        this.addConsoleMessage(`Leyendo símbolo en posición ${this.position}: "${currentSymbol}"`);
-        
-        this.position++;
-        if (this.position >= this.tape.length) {
-            this.tape.push('□');
+        this.addLog(`Estado ${this.currentState}, símbolo: "${currentSymbol}"`);
+
+        const stateHandler = this.states[this.currentState];
+        if (stateHandler) {
+            stateHandler(currentSymbol);
         }
-        
+
         this.renderTape();
         this.updateDisplay();
-        
-        this.addConsoleMessage(`Moviendo cabezal a posición ${this.position}`);
+    }
+
+    stateQ0(symbol) {
+        if (this.isDigit(symbol)) {
+            this.currentState = 'q1';
+            this.digitsRead++;
+            this.position++;
+            this.addLog('Primer dígito válido → q1');
+        } else if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Cadena vacía - Verificando longitud');
+            this.checkLength();
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ1(symbol) {
+        if (this.isDigit(symbol)) {
+            this.currentState = 'q2';
+            this.digitsRead++;
+            this.position++;
+            this.addLog('Segundo dígito válido → q2');
+        } else if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Fin de cadena - Verificando longitud');
+            this.checkLength();
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ2(symbol) {
+        if (this.isDigit(symbol)) {
+            this.currentState = 'q3';
+            this.digitsRead++;
+            this.position++;
+            this.addLog('Tercer dígito válido → q3');
+        } else if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Fin de cadena - Verificando longitud');
+            this.checkLength();
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ3(symbol) {
+        if (this.isDigit(symbol)) {
+            this.currentState = 'q4';
+            this.digitsRead++;
+            this.position++;
+            this.addLog('Cuarto dígito válido → q4');
+        } else if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Fin de cadena - Verificando longitud');
+            this.checkLength();
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ4(symbol) {
+        if (this.isDigit(symbol)) {
+            this.currentState = 'q5';
+            this.digitsRead++;
+            this.position++;
+            this.addLog('Quinto dígito válido → q5');
+        } else if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Fin de cadena - Verificando longitud');
+            this.checkLength();
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ5(symbol) {
+        if (this.isDigit(symbol)) {
+            this.currentState = 'q6';
+            this.digitsRead++;
+            this.position++;
+            this.addLog('Sexto dígito válido → q6');
+        } else if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Fin de cadena - Verificando longitud');
+            this.checkLength();
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ6(symbol) {
+        if (symbol === '□') {
+            this.currentState = 'check';
+            this.addLog('Fin de cadena - Verificando longitud');
+            this.checkLength();
+        } else if (this.isDigit(symbol)) {
+            this.digitsRead++;
+            this.position++;
+            this.addLog(`Dígito ${this.digitsRead} leído - Continuando lectura`);
+        } else {
+            this.currentState = 'q7';
+            this.position++;
+            this.addLog('Símbolo inválido - debe ser dígito → q7');
+        }
+    }
+
+    stateQ7(symbol) {
+        if (symbol === '□') {
+            this.currentState = 'reject';
+            this.addLog('❌ PIN INVÁLIDO - Contiene símbolos no numéricos');
+        } else {
+            this.position++;
+            this.addLog('Continuando lectura de símbolos inválidos...');
+        }
+    }
+
+    stateCheck(symbol) {
+        this.checkLength();
+    }
+
+    checkLength() {
+        if (this.currentState === 'q7') {
+            this.currentState = 'reject';
+            this.addLog('❌ PIN INVÁLIDO - Contiene símbolos no numéricos');
+        } else if (this.digitsRead === 4 || this.digitsRead === 6) {
+            this.currentState = 'accept';
+            this.addLog(`✅ PIN VÁLIDO - ${this.digitsRead} dígitos exactos`);
+        } else {
+            this.currentState = 'reject';
+            this.addLog(`❌ PIN INVÁLIDO - ${this.digitsRead} dígitos (debe ser 4 o 6)`);
+        }
+        this.updateDisplay();
+    }
+
+    isDigit(symbol) {
+        return /^[0-9]$/.test(symbol);
     }
 
     run() {
         if (this.isRunning) return;
         
         this.isRunning = true;
-        this.addConsoleMessage('Iniciando ejecución automática...');
-        
-        const executeStep = () => {
-            if (this.position < this.tape.length && this.isRunning) {
+        this.addLog('Ejecución automática iniciada');
+
+        const execute = () => {
+            if ((this.currentState !== 'accept' && this.currentState !== 'reject') && 
+                this.position < this.tape.length && this.isRunning) {
                 this.step();
-                setTimeout(executeStep, this.speed);
+                setTimeout(execute, this.speed);
             } else {
                 this.isRunning = false;
-                this.addConsoleMessage('Ejecución completada');
+                if (this.currentState === 'accept') {
+                    this.addLog('✅ Ejecución completada - PIN VÁLIDO');
+                } else if (this.currentState === 'reject') {
+                    this.addLog('❌ Ejecución completada - PIN INVÁLIDO');
+                }
             }
         };
         
-        executeStep();
+        execute();
     }
 
     reset() {
-        this.tape = [];
+        this.tape = ['□', '□', '□', '□', '□', '□', '□'];
         this.position = 0;
         this.currentState = 'q0';
         this.isRunning = false;
+        this.digitsRead = 0;
         
+        this.elements.input.value = '';
         this.renderTape();
         this.updateDisplay();
-        this.addConsoleMessage('Máquina reiniciada');
+        this.addLog('Sistema reiniciado');
     }
 
     updateDisplay() {
-        this.stateElement.textContent = this.currentState;
-        this.symbolElement.textContent = this.tape[this.position] || '-';
-        this.positionElement.textContent = this.position;
+        this.elements.state.textContent = this.currentState;
+        this.elements.symbol.textContent = this.tape[this.position] || '-';
+        this.elements.position.textContent = this.position;
+        
+        if (this.currentState === 'accept') {
+            this.elements.result.textContent = '✅ PIN VÁLIDO';
+            this.elements.result.style.color = '#00ff88';
+        } else if (this.currentState === 'reject') {
+            this.elements.result.textContent = '❌ PIN INVÁLIDO';
+            this.elements.result.style.color = '#ff0080';
+        } else {
+            this.elements.result.textContent = '⏳ Procesando...';
+            this.elements.result.style.color = '#ffffff';
+        }
     }
 
-    addConsoleMessage(message, type = 'info') {
-        const line = document.createElement('div');
-        line.className = 'console-line';
-        
-        const icon = this.getConsoleIcon(type);
-        line.innerHTML = `${icon}${message}`;
-        
-        this.consoleElement.appendChild(line);
-        this.consoleElement.scrollTop = this.consoleElement.scrollHeight;
-    }
-
-    getConsoleIcon(type) {
-        const icons = {
-            info: '<svg class="console-icon" viewBox="0 0 24 24"><path d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z"/></svg>',
-            success: '<svg class="console-icon" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"/></svg>',
-            error: '<svg class="console-icon" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>'
-        };
-        
-        return icons[type] || icons.info;
+    addLog(message) {
+        const log = document.createElement('div');
+        log.className = 'console-line';
+        log.textContent = `> ${message}`;
+        this.elements.console.appendChild(log);
+        this.elements.console.scrollTop = this.elements.console.scrollHeight;
     }
 }
 

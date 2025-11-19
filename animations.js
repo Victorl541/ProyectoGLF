@@ -49,12 +49,19 @@ class ScrollAnimations {
     }
 
     initScrollAnimations() {
+        const elementInView = (el, dividend = 1) => {
+            const elementTop = el.getBoundingClientRect().top;
+            return elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend;
+        };
+
+        const displayScrollElement = (element) => {
+            element.classList.add('visible');
+        };
+
         const handleScrollAnimation = () => {
             this.scrollElements.forEach((el) => {
-                if (this.isElementInView(el, 1.2)) {
-                    el.classList.add('visible');
-                } else {
-                    el.classList.remove('visible');
+                if (elementInView(el, 1.2)) {
+                    displayScrollElement(el);
                 }
             });
         };
@@ -63,13 +70,8 @@ class ScrollAnimations {
         handleScrollAnimation();
     }
 
-    isElementInView(el, dividend = 1) {
-        const elementTop = el.getBoundingClientRect().top;
-        return elementTop <= (window.innerHeight || document.documentElement.clientHeight) / dividend;
-    }
-
     initButtonEffects() {
-        const buttons = document.querySelectorAll('.button-primary');
+        const buttons = document.querySelectorAll('.btn-primary');
         buttons.forEach(button => {
             button.addEventListener('mouseenter', () => {
                 button.style.transform = 'translateY(-3px) scale(1.02)';
