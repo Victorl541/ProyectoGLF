@@ -106,7 +106,7 @@ Esta expresión es **regular** porque cumple con las características de los len
 
 ## Ejemplos de Cadenas
 
-### ✅ Cadenas que **SÍ** acepta:
+### Cadenas que **SÍ** acepta:
 
 | Cadena | Descripción |
 |--------|-------------|
@@ -117,7 +117,7 @@ Esta expresión es **regular** porque cumple con las características de los len
 | `000000` | PIN de 6 dígitos (todos ceros) |
 | `987654` | PIN de 6 dígitos |
 
-### ❌ Cadenas que **NO** acepta:
+### Cadenas que **NO** acepta:
 
 | Cadena | Razón del rechazo |
 |--------|-------------------|
