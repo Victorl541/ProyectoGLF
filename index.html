@@ -12,7 +12,7 @@
     <header class="hero">
         <div class="hero-content">
             <h1 class="title">Simulador de Máquina de Turing</h1>
-            <p class="subtitle">Proyecto Final - Gramáticas y Lenguajes Formales</p>
+            <p class="subtitle">Validación de PINs con Visualización de Estados</p>
             <div class="scroll-indicator">
                 <div class="mouse"></div>
             </div>
@@ -20,65 +20,129 @@
     </header>
 
     <main class="container">
+        <!-- Controles -->
         <section class="input-panel" data-scroll="fade-up">
-            <h2>Configuración de la Máquina</h2>
-            <div class="input-group">
-                <label for="inputString">Cadena de Entrada:</label>
-                <input type="text" id="inputString" placeholder="Ingresa la cadena para la cinta..." maxlength="10">
-                <button class="btn btn-primary" id="loadBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24">
-                        <path d="M11 15H13V9H16L12 4L8 9H11V15Z M20 18H4V11H2V18C2 19.103 2.897 20 4 20H20C21.103 20 22 19.103 22 18V11H20V18Z"/>
-                    </svg>
-                    Cargar en Cinta
-                </button>
-            </div>
-        </section>
-
-        <section class="control-panel" data-scroll="fade-up">
-            <h2>Controles de Ejecución</h2>
-            <div class="button-grid">
-                <button class="btn btn-primary" id="stepBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24">
-                        <path d="M10 18L16 12L10 6V18Z"/>
-                    </svg>
-                    Avanzar Paso
-                </button>
-                <button class="btn btn-primary" id="runBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24">
-                        <path d="M8 5V19L19 12L8 5Z"/>
-                    </svg>
-                    Ejecutar Todo
-                </button>
-                <button class="btn btn-primary" id="resetBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4 7.58 4 12C4 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z"/>
-                    </svg>
-                    Reiniciar
-                </button>
-            </div>
-        </section>
-
-        <section class="tape-section" data-scroll="zoom-in">
-            <h2>Cinta de la Máquina de Turing</h2>
-            <div class="tape-container">
-                <div class="tape" id="tape">
-                    <div class="cell blank">□</div>
-                    <div class="cell blank">□</div>
-                    <div class="cell blank">□</div>
-                    <div class="cell blank">□</div>
-                    <div class="cell blank">□</div>
-                    <div class="cell blank">□</div>
-                    <div class="cell blank">□</div>
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m-6-6h6m6 0h-6"></path>
+                    <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                Configuración y Controles
+            </h2>
+            <div class="controls-wrapper">
+                <div class="input-group">
+                    <label for="inputString">Cadena de Entrada (PIN):</label>
+                    <input type="text" id="inputString" placeholder="Ej: 1234 o 123456" maxlength="10">
                 </div>
-                <div class="tape-head" id="tapeHead">
-                    <div class="head-arrow">▼</div>
-                    <div class="head-label">Cabezal</div>
+                <div class="button-group">
+                    <button class="btn btn-load" id="loadBtn">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                        <span>Cargar</span>
+                    </button>
+                    <button class="btn btn-step" id="stepBtn">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <span>Paso</span>
+                    </button>
+                    <button class="btn btn-run" id="runBtn">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M13 24l11-12L13 0v7C3 8 1 19 1 19s4-8 12-8.5V24z"/>
+                        </svg>
+                        <span>Ejecutar</span>
+                    </button>
+                    <button class="btn btn-reset" id="resetBtn">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg>
+                        <span>Reiniciar</span>
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- Diagrama de Estados ÉPICO -->
+        <section class="diagram-section" data-scroll="zoom-in">
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                Diagrama de Estados Interactivo
+            </h2>
+            <div class="state-diagram" id="stateDiagram">
+                <!-- Los nodos se generan dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Cintas -->
+        <section class="tapes-section" data-scroll="fade-up">
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="10" rx="2"></rect>
+                    <path d="M6 11h12M6 13h8"></path>
+                </svg>
+                Cintas de Lectura y Escritura
+            </h2>
+            
+            <!-- Cinta de Lectura -->
+            <div class="tape-wrapper">
+                <div class="tape-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                            <path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>
+                        </svg>
+                        Cinta de Lectura (Input)
+                    </h3>
+                    <div class="tape-status">
+                        <span>Posición: <strong id="readPosition">0</strong></span>
+                    </div>
+                </div>
+                <div class="tape-container">
+                    <div class="tape" id="readTape"></div>
+                    <div class="tape-head">
+                        <div class="head-arrow">▼</div>
+                        <div class="head-label">Cabezal de Lectura</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cinta de Escritura -->
+            <div class="tape-wrapper">
+                <div class="tape-header">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        Cinta de Escritura (Output)
+                    </h3>
+                    <div class="tape-status">
+                        <span>Caracteres escritos: <strong id="writeCount">0</strong></span>
+                    </div>
+                </div>
+                <div class="tape-container">
+                    <div class="tape" id="writeTape"></div>
+                    <div class="tape-head write">
+                        <div class="head-arrow">▼</div>
+                        <div class="head-label">Cabezal de Escritura</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel de Estado -->
         <section class="state-panel" data-scroll="fade-left">
-            <h2>Estado de la Máquina</h2>
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 3v18h18"></path>
+                    <path d="M18 17l-5-5-3 3-4-4"></path>
+                </svg>
+                Estado de la Máquina
+            </h2>
             <div class="state-grid">
                 <div class="state-item">
                     <span class="state-label">Estado Actual:</span>
@@ -89,61 +153,87 @@
                     <span class="state-value" id="currentSymbol">-</span>
                 </div>
                 <div class="state-item">
-                    <span class="state-label">Posición:</span>
-                    <span class="state-value" id="currentPosition">0</span>
+                    <span class="state-label">Dígitos Leídos:</span>
+                    <span class="state-value" id="digitsRead">0</span>
                 </div>
                 <div class="state-item full-width">
                     <span class="state-label">Resultado:</span>
-                    <span class="state-value" id="result">Esperando ejecución...</span>
+                    <span class="state-value" id="result">⏳ Esperando entrada...</span>
                 </div>
             </div>
         </section>
 
+        <!-- Información del Proyecto -->
         <section class="info-panel" data-scroll="fade-right">
-    <h2>Información del Proyecto</h2>
-    <div class="info-content">
-        <div class="info-item">
-            <h3>Regex a Validar</h3>
-            <p class="regex-display">^([0-9]{4}|[0-9]{6})$</p>
-            <p>PIN de exactamente 4 o 6 dígitos numéricos</p>
-            <p><strong>Estado de aceptación:</strong> accept</p>
-            <p><strong>Estado de rechazo:</strong> reject</p>
-            <p><strong>Comportamiento:</strong> Lee toda la cadena y valida al final</p>
-        </div>
-        <div class="info-item">
-            <h3>Objetivo</h3>
-            <p>Simular una MT que emula un AFD para validar una expresión regular</p>
-        </div>
-        <div class="info-item">
-            <h3>Restricciones</h3>
-            <ul>
-                <li>El cabezal solo se mueve a la derecha</li>
-                <li>La MT solo escribe lo que lee</li>
-                <li>Emula el comportamiento de un AFD</li>
-                <li>Límite de 10 caracteres en la entrada</li>
-                <li>Valida al final de la cadena</li>
-            </ul>
-        </div>
-    </div>
-</section>
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4m0-4h.01"></path>
+                </svg>
+                Información del Proyecto
+            </h2>
+            <div class="info-content">
+                <div class="info-item">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                        Objetivo
+                    </h3>
+                    <p>Validar PINs de exactamente <strong>4 o 6 dígitos</strong> numéricos</p>
+                    <div class="regex-display">^([0-9]{4}|[0-9]{6})$</div>
+                </div>
+                <div class="info-item">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        Ejemplos Válidos
+                    </h3>
+                    <ul>
+                        <li>1234 → ✓ 4 dígitos</li>
+                        <li>123456 → ✓ 6 dígitos</li>
+                        <li>0000 → ✓ 4 dígitos</li>
+                    </ul>
+                </div>
+                <div class="info-item">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                        Ejemplos Inválidos
+                    </h3>
+                    <ul>
+                        <li>123 → ✗ Solo 3 dígitos</li>
+                        <li>12345 → ✗ 5 dígitos</li>
+                        <li>12a4 → ✗ Contiene letras</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
 
+        <!-- Consola de Log -->
         <section class="console-section" data-scroll="fade-up">
-            <h2>Log de Ejecución</h2>
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <path d="M7 8l3 3-3 3m5 0h4"></path>
+                </svg>
+                Log de Ejecución
+            </h2>
             <div class="console" id="console">
-                <div class="console-line">> Sistema inicializado correctamente</div>
-                <div class="console-line">> Máquina de Turing lista para recibir entrada</div>
-                <div class="console-line">> Estado inicial: q0</div>
-                <div class="console-line">> Esperando carga de cadena...</div>
+                <div class="console-line success">✓ Sistema inicializado</div>
+                <div class="console-line">→ Máquina de Turing lista</div>
+                <div class="console-line">→ Estado inicial: q0</div>
+                <div class="console-line info">ℹ Esperando carga de cadena...</div>
             </div>
         </section>
     </main>
 
     <footer class="footer">
-        <p>Proyecto de Gramáticas y Lenguajes Formales - Universidad Tecnológica de Pereira</p>
-        <p>Integrantes:</p>
-        <p>Alejandro Oquendo Bedoya</p>
-        <p>Victor Largo</p>
-        <p>Andrea Valentina Trujillo</p>
+        <p><strong>Proyecto de Gramáticas y Lenguajes Formales</strong></p>
+        <p>Universidad Tecnológica de Pereira</p>
+        <p>Integrantes: Alejandro Oquendo | Victor Largo | Andrea Valentina Trujillo</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
